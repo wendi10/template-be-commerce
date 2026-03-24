@@ -1,0 +1,1052 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2026-03-06T00:00:00.000Z",
+  "__export_source": "commerce-api",
+  "resources": [
+    {
+      "_id": "wrk_commerce_api",
+      "_type": "workspace",
+      "parentId": null,
+      "name": "Commerce API",
+      "description": "Full API collection for template-be-commerce. Base URL: http://localhost:8080",
+      "scope": "collection"
+    },
+
+    {
+      "_id": "env_base",
+      "_type": "environment",
+      "parentId": "wrk_commerce_api",
+      "name": "Base Environment",
+      "data": {
+        "base_url": "http://localhost:8080",
+        "api_prefix": "/api/v1",
+        "customer_token": "PASTE_CUSTOMER_JWT_HERE",
+        "admin_token": "PASTE_ADMIN_JWT_HERE",
+        "customer_refresh_token": "",
+        "product_id": "PASTE_PRODUCT_UUID_HERE",
+        "product_slug": "example-product",
+        "category_id": "PASTE_CATEGORY_UUID_HERE",
+        "banner_id": "PASTE_BANNER_UUID_HERE",
+        "promo_id": "PASTE_PROMO_UUID_HERE",
+        "order_id": "PASTE_ORDER_UUID_HERE",
+        "cart_item_id": "PASTE_CART_ITEM_UUID_HERE",
+        "address_id": "PASTE_ADDRESS_UUID_HERE",
+        "image_id": "PASTE_IMAGE_UUID_HERE"
+      }
+    },
+
+    {
+      "_id": "fld_health",
+      "_type": "request_group",
+      "parentId": "wrk_commerce_api",
+      "name": "🟢 Health"
+    },
+    {
+      "_id": "req_health_check",
+      "_type": "request",
+      "parentId": "fld_health",
+      "name": "Health Check",
+      "method": "GET",
+      "url": "{{ _.base_url }}/health",
+      "headers": [],
+      "body": {},
+      "parameters": [],
+      "description": "Returns {\"status\":\"ok\"} when server is running."
+    },
+
+    {
+      "_id": "fld_public_auth",
+      "_type": "request_group",
+      "parentId": "wrk_commerce_api",
+      "name": "🔐 Auth (Public)"
+    },
+    {
+      "_id": "req_customer_register",
+      "_type": "request",
+      "parentId": "fld_public_auth",
+      "name": "Register Customer",
+      "method": "POST",
+      "url": "{{ _.base_url }}{{ _.api_prefix }}/auth/register",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"customer@example.com\",\n  \"password\": \"password123\",\n  \"first_name\": \"John\",\n  \"last_name\": \"Doe\",\n  \"phone\": \"+6281234567890\"\n}"
+      },
+      "parameters": [],
+      "description": "Register a new customer account. Returns JWT tokens."
+    },
+    {
+      "_id": "req_customer_login",
+      "_type": "request",
+      "parentId": "fld_public_auth",
+      "name": "Login Customer",
+      "method": "POST",
+      "url": "{{ _.base_url }}{{ _.api_prefix }}/auth/login",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"customer@example.com\",\n  \"password\": \"password123\"\n}"
+      },
+      "parameters": [],
+      "description": "Login as customer. Copy access_token → customer_token in env."
+    },
+    {
+      "_id": "req_refresh_token",
+      "_type": "request",
+      "parentId": "fld_public_auth",
+      "name": "Refresh Token",
+      "method": "POST",
+      "url": "{{ _.base_url }}{{ _.api_prefix }}/auth/refresh",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"refresh_token\": \"{{ _.customer_refresh_token }}\"\n}"
+      },
+      "parameters": [],
+      "description": "Refresh access token using a valid refresh token."
+    },
+
+    {
+      "_id": "fld_public_products",
+      "_type": "request_group",
+      "parentId": "wrk_commerce_api",
+      "name": "🛍️ Products (Public)"
+    },
+    {
+      "_id": "req_list_products",
+      "_type": "request",
+      "parentId": "fld_public_products",
+      "name": "List Products",
+      "method": "GET",
+      "url": "{{ _.base_url }}{{ _.api_prefix }}/products",
+      "headers": [],
+      "body": {},
+      "parameters": [
+        { "name": "page",        "value": "1",    "disabled": false },
+        { "name": "limit",       "value": "12",   "disabled": false },
+        { "name": "search",      "value": "",     "disabled": true  },
+        { "name": "category_id", "value": "",     "disabled": true  },
+        { "name": "min_price",   "value": "",     "disabled": true  },
+        { "name": "max_price",   "value": "",     "disabled": true  },
+        { "name": "sort_by",     "value": "created_at", "disabled": true },
+        { "name": "sort_order",  "value": "desc", "disabled": true  }
+      ],
+      "description": "Public product list with pagination, search, category filter, price range. Only active products returned."
+    },
+    {
+      "_id": "req_get_product_by_id",
+      "_type": "request",
+      "parentId": "fld_public_products",
+      "name": "Get Product by ID",
+      "method": "GET",
+      "url": "{{ _.base_url }}{{ _.api_prefix }}/products/{{ _.product_id }}",
+      "headers": [],
+      "body": {},
+      "parameters": [],
+      "description": "Get a single product by UUID."
+    },
+    {
+      "_id": "req_get_product_by_slug",
+      "_type": "request",
+      "parentId": "fld_public_products",
+      "name": "Get Product by Slug",
+      "method": "GET",
+      "url": "{{ _.base_url }}{{ _.api_prefix }}/products/slug/{{ _.product_slug }}",
+      "headers": [],
+      "body": {},
+      "parameters": [],
+      "description": "Get a single product by its URL-friendly slug."
+    },
+
+    {
+      "_id": "fld_public_categories",
+      "_type": "request_group",
+      "parentId": "wrk_commerce_api",
+      "name": "🗂️ Categories (Public)"
+    },
+    {
+      "_id": "req_list_categories",
+      "_type": "request",
+      "parentId": "fld_public_categories",
+      "name": "List Categories",
+      "method": "GET",
+      "url": "{{ _.base_url }}{{ _.api_prefix }}/categories",
+      "headers": [],
+      "body": {},
+      "parameters": [],
+      "description": "List all active product categories."
+    },
+
+    {
+      "_id": "fld_public_banners",
+      "_type": "request_group",
+      "parentId": "wrk_commerce_api",
+      "name": "🖼️ Banners (Public)"
+    },
+    {
+      "_id": "req_list_active_banners",
+      "_type": "request",
+      "parentId": "fld_public_banners",
+      "name": "List Active Banners",
+      "method": "GET",
+      "url": "{{ _.base_url }}{{ _.api_prefix }}/banners",
+      "headers": [],
+      "body": {},
+      "parameters": [],
+      "description": "List all active banners for the storefront homepage."
+    },
+
+    {
+      "_id": "fld_public_promos",
+      "_type": "request_group",
+      "parentId": "wrk_commerce_api",
+      "name": "🎟️ Promos (Public)"
+    },
+    {
+      "_id": "req_validate_promo",
+      "_type": "request",
+      "parentId": "fld_public_promos",
+      "name": "Validate Promo Code",
+      "method": "POST",
+      "url": "{{ _.base_url }}{{ _.api_prefix }}/promos/validate",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"code\": \"SAVE10\",\n  \"sub_total\": 150000\n}"
+      },
+      "parameters": [],
+      "description": "Validate a promo code and calculate the discount amount for a given sub_total."
+    },
+
+    {
+      "_id": "fld_customer_profile",
+      "_type": "request_group",
+      "parentId": "wrk_commerce_api",
+      "name": "👤 Customer – Profile (Auth)"
+    },
+    {
+      "_id": "req_get_profile",
+      "_type": "request",
+      "parentId": "fld_customer_profile",
+      "name": "Get My Profile",
+      "method": "GET",
+      "url": "{{ _.base_url }}{{ _.api_prefix }}/me",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.customer_token }}" }
+      ],
+      "body": {},
+      "parameters": [],
+      "description": "Get the authenticated customer's profile."
+    },
+    {
+      "_id": "req_update_profile",
+      "_type": "request",
+      "parentId": "fld_customer_profile",
+      "name": "Update My Profile",
+      "method": "PUT",
+      "url": "{{ _.base_url }}{{ _.api_prefix }}/me",
+      "headers": [
+        { "name": "Content-Type",  "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{ _.customer_token }}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"first_name\": \"John\",\n  \"last_name\": \"Doe\",\n  \"phone\": \"+6281234567890\",\n  \"avatar\": \"https://example.com/avatar.jpg\"\n}"
+      },
+      "parameters": [],
+      "description": "Update the authenticated customer's profile. All fields are optional."
+    },
+
+    {
+      "_id": "fld_customer_addresses",
+      "_type": "request_group",
+      "parentId": "wrk_commerce_api",
+      "name": "📍 Customer – Addresses (Auth)"
+    },
+    {
+      "_id": "req_list_addresses",
+      "_type": "request",
+      "parentId": "fld_customer_addresses",
+      "name": "List My Addresses",
+      "method": "GET",
+      "url": "{{ _.base_url }}{{ _.api_prefix }}/me/addresses",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.customer_token }}" }
+      ],
+      "body": {},
+      "parameters": [],
+      "description": "Get all shipping addresses for the authenticated customer."
+    },
+    {
+      "_id": "req_create_address",
+      "_type": "request",
+      "parentId": "fld_customer_addresses",
+      "name": "Create Address",
+      "method": "POST",
+      "url": "{{ _.base_url }}{{ _.api_prefix }}/me/addresses",
+      "headers": [
+        { "name": "Content-Type",  "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{ _.customer_token }}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"label\": \"Home\",\n  \"recipient_name\": \"John Doe\",\n  \"phone\": \"+6281234567890\",\n  \"address_line1\": \"Jl. Sudirman No. 1\",\n  \"address_line2\": \"Lantai 5\",\n  \"city\": \"Jakarta Pusat\",\n  \"province\": \"DKI Jakarta\",\n  \"postal_code\": \"10220\",\n  \"is_default\": true\n}"
+      },
+      "parameters": [],
+      "description": "Create a new shipping address."
+    },
+    {
+      "_id": "req_update_address",
+      "_type": "request",
+      "parentId": "fld_customer_addresses",
+      "name": "Update Address",
+      "method": "PUT",
+      "url": "{{ _.base_url }}{{ _.api_prefix }}/me/addresses/{{ _.address_id }}",
+      "headers": [
+        { "name": "Content-Type",  "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{ _.customer_token }}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"label\": \"Office\",\n  \"recipient_name\": \"John Doe\",\n  \"phone\": \"+6281234567890\",\n  \"address_line1\": \"Jl. Gatot Subroto No. 10\",\n  \"address_line2\": \"\",\n  \"city\": \"Jakarta Selatan\",\n  \"province\": \"DKI Jakarta\",\n  \"postal_code\": \"12930\",\n  \"is_default\": false\n}"
+      },
+      "parameters": [],
+      "description": "Update a specific shipping address. All fields are optional."
+    },
+    {
+      "_id": "req_delete_address",
+      "_type": "request",
+      "parentId": "fld_customer_addresses",
+      "name": "Delete Address",
+      "method": "DELETE",
+      "url": "{{ _.base_url }}{{ _.api_prefix }}/me/addresses/{{ _.address_id }}",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.customer_token }}" }
+      ],
+      "body": {},
+      "parameters": [],
+      "description": "Delete a shipping address."
+    },
+    {
+      "_id": "req_set_default_address",
+      "_type": "request",
+      "parentId": "fld_customer_addresses",
+      "name": "Set Default Address",
+      "method": "PATCH",
+      "url": "{{ _.base_url }}{{ _.api_prefix }}/me/addresses/{{ _.address_id }}/default",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.customer_token }}" }
+      ],
+      "body": {},
+      "parameters": [],
+      "description": "Mark a specific address as the default shipping address."
+    },
+
+    {
+      "_id": "fld_customer_cart",
+      "_type": "request_group",
+      "parentId": "wrk_commerce_api",
+      "name": "🛒 Customer – Cart (Auth)"
+    },
+    {
+      "_id": "req_get_cart",
+      "_type": "request",
+      "parentId": "fld_customer_cart",
+      "name": "Get Cart",
+      "method": "GET",
+      "url": "{{ _.base_url }}{{ _.api_prefix }}/cart",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.customer_token }}" }
+      ],
+      "body": {},
+      "parameters": [
+        { "name": "promo_code", "value": "", "disabled": true }
+      ],
+      "description": "Get current cart summary. Optionally pass promo_code to see discount applied."
+    },
+    {
+      "_id": "req_add_to_cart",
+      "_type": "request",
+      "parentId": "fld_customer_cart",
+      "name": "Add to Cart",
+      "method": "POST",
+      "url": "{{ _.base_url }}{{ _.api_prefix }}/cart",
+      "headers": [
+        { "name": "Content-Type",  "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{ _.customer_token }}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"product_id\": \"{{ _.product_id }}\",\n  \"quantity\": 1\n}"
+      },
+      "parameters": [],
+      "description": "Add a product to the cart. If already exists, quantity is incremented."
+    },
+    {
+      "_id": "req_update_cart_item",
+      "_type": "request",
+      "parentId": "fld_customer_cart",
+      "name": "Update Cart Item Quantity",
+      "method": "PUT",
+      "url": "{{ _.base_url }}{{ _.api_prefix }}/cart/{{ _.cart_item_id }}",
+      "headers": [
+        { "name": "Content-Type",  "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{ _.customer_token }}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"quantity\": 3\n}"
+      },
+      "parameters": [],
+      "description": "Update quantity of a specific cart item. quantity must be >= 1."
+    },
+    {
+      "_id": "req_remove_cart_item",
+      "_type": "request",
+      "parentId": "fld_customer_cart",
+      "name": "Remove Cart Item",
+      "method": "DELETE",
+      "url": "{{ _.base_url }}{{ _.api_prefix }}/cart/{{ _.cart_item_id }}",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.customer_token }}" }
+      ],
+      "body": {},
+      "parameters": [],
+      "description": "Remove a specific item from the cart."
+    },
+
+    {
+      "_id": "fld_customer_orders",
+      "_type": "request_group",
+      "parentId": "wrk_commerce_api",
+      "name": "📦 Customer – Orders (Auth)"
+    },
+    {
+      "_id": "req_create_order",
+      "_type": "request",
+      "parentId": "fld_customer_orders",
+      "name": "Create Order",
+      "method": "POST",
+      "url": "{{ _.base_url }}{{ _.api_prefix }}/orders",
+      "headers": [
+        { "name": "Content-Type",  "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{ _.customer_token }}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"address_id\": \"{{ _.address_id }}\",\n  \"promo_code\": \"\",\n  \"notes\": \"Please handle with care\"\n}"
+      },
+      "parameters": [],
+      "description": "Create an order from current cart items. promo_code is optional."
+    },
+    {
+      "_id": "req_list_my_orders",
+      "_type": "request",
+      "parentId": "fld_customer_orders",
+      "name": "List My Orders",
+      "method": "GET",
+      "url": "{{ _.base_url }}{{ _.api_prefix }}/orders",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.customer_token }}" }
+      ],
+      "body": {},
+      "parameters": [
+        { "name": "page",   "value": "1",  "disabled": false },
+        { "name": "limit",  "value": "10", "disabled": false },
+        { "name": "status", "value": "pending", "disabled": true }
+      ],
+      "description": "List the authenticated customer's orders. Filter by status: pending | waiting_payment | paid | processing | shipped | completed | cancelled"
+    },
+    {
+      "_id": "req_get_my_order",
+      "_type": "request",
+      "parentId": "fld_customer_orders",
+      "name": "Get Order Detail",
+      "method": "GET",
+      "url": "{{ _.base_url }}{{ _.api_prefix }}/orders/{{ _.order_id }}",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.customer_token }}" }
+      ],
+      "body": {},
+      "parameters": [],
+      "description": "Get detail of a specific order belonging to the authenticated customer."
+    },
+    {
+      "_id": "req_cancel_order",
+      "_type": "request",
+      "parentId": "fld_customer_orders",
+      "name": "Cancel Order",
+      "method": "POST",
+      "url": "{{ _.base_url }}{{ _.api_prefix }}/orders/{{ _.order_id }}/cancel",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.customer_token }}" }
+      ],
+      "body": {},
+      "parameters": [],
+      "description": "Cancel an order (only allowed if status is pending or waiting_payment)."
+    },
+
+    {
+      "_id": "fld_customer_payments",
+      "_type": "request_group",
+      "parentId": "wrk_commerce_api",
+      "name": "💳 Customer – Payments (Auth)"
+    },
+    {
+      "_id": "req_create_payment",
+      "_type": "request",
+      "parentId": "fld_customer_payments",
+      "name": "Create Payment",
+      "method": "POST",
+      "url": "{{ _.base_url }}{{ _.api_prefix }}/payments",
+      "headers": [
+        { "name": "Content-Type",  "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{ _.customer_token }}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"order_id\": \"{{ _.order_id }}\",\n  \"payment_method\": \"virtual_account\",\n  \"provider\": \"doku\"\n}"
+      },
+      "parameters": [],
+      "description": "Initiate a payment for an order. provider must be 'doku'. Returns payment_url for redirect."
+    },
+    {
+      "_id": "req_get_payment_by_order",
+      "_type": "request",
+      "parentId": "fld_customer_payments",
+      "name": "Get Payment by Order ID",
+      "method": "GET",
+      "url": "{{ _.base_url }}{{ _.api_prefix }}/payments/order/{{ _.order_id }}",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.customer_token }}" }
+      ],
+      "body": {},
+      "parameters": [],
+      "description": "Get payment status and details for a specific order."
+    },
+    {
+      "_id": "req_payment_callback",
+      "_type": "request",
+      "parentId": "fld_customer_payments",
+      "name": "Payment Callback (Webhook)",
+      "method": "POST",
+      "url": "{{ _.base_url }}{{ _.api_prefix }}/payments/callback/doku",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"transaction_id\": \"TXN123456\",\n  \"order_id\": \"{{ _.order_id }}\",\n  \"amount\": 150000,\n  \"status\": \"success\"\n}"
+      },
+      "parameters": [],
+      "description": "Webhook endpoint called by payment gateway. provider path param: doku. No auth required — signed by provider."
+    },
+
+    {
+      "_id": "fld_admin_auth",
+      "_type": "request_group",
+      "parentId": "wrk_commerce_api",
+      "name": "🔑 Admin – Auth"
+    },
+    {
+      "_id": "req_admin_register",
+      "_type": "request",
+      "parentId": "fld_admin_auth",
+      "name": "Register Admin",
+      "method": "POST",
+      "url": "{{ _.base_url }}{{ _.api_prefix }}/admin/auth/register",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"Admin@1234\",\n  \"first_name\": \"Super\",\n  \"last_name\": \"Admin\",\n  \"phone\": \"+6281000000001\"\n}"
+      },
+      "parameters": [],
+      "description": "Register a new admin account. No authentication required."
+    },
+    {
+      "_id": "req_admin_login",
+      "_type": "request",
+      "parentId": "fld_admin_auth",
+      "name": "Login Admin",
+      "method": "POST",
+      "url": "{{ _.base_url }}{{ _.api_prefix }}/admin/auth/login",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"Admin@1234\"\n}"
+      },
+      "parameters": [],
+      "description": "Login as admin. Copy access_token → admin_token in env."
+    },
+
+    {
+      "_id": "fld_admin_products",
+      "_type": "request_group",
+      "parentId": "wrk_commerce_api",
+      "name": "📦 Admin – Products"
+    },
+    {
+      "_id": "req_admin_list_products",
+      "_type": "request",
+      "parentId": "fld_admin_products",
+      "name": "List Products (Admin)",
+      "method": "GET",
+      "url": "{{ _.base_url }}{{ _.api_prefix }}/admin/products",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.admin_token }}" }
+      ],
+      "body": {},
+      "parameters": [
+        { "name": "page",       "value": "1",    "disabled": false },
+        { "name": "limit",      "value": "20",   "disabled": false },
+        { "name": "search",     "value": "",     "disabled": true  },
+        { "name": "sort_by",    "value": "created_at", "disabled": true },
+        { "name": "sort_order", "value": "desc", "disabled": true  }
+      ],
+      "description": "Admin product list — includes inactive products. Supports pagination and search."
+    },
+    {
+      "_id": "req_admin_create_product",
+      "_type": "request",
+      "parentId": "fld_admin_products",
+      "name": "Create Product",
+      "method": "POST",
+      "url": "{{ _.base_url }}{{ _.api_prefix }}/admin/products",
+      "headers": [
+        { "name": "Content-Type",  "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{ _.admin_token }}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"category_id\": \"{{ _.category_id }}\",\n  \"name\": \"Red Rose Bouquet\",\n  \"slug\": \"red-rose-bouquet\",\n  \"description\": \"A beautiful bouquet of fresh red roses.\",\n  \"price\": 250000,\n  \"weight\": 0.5,\n  \"stock\": 100,\n  \"is_active\": true\n}"
+      },
+      "parameters": [],
+      "description": "Create a new product. slug is optional (auto-generated from name). price and weight are decimal numbers."
+    },
+    {
+      "_id": "req_admin_update_product",
+      "_type": "request",
+      "parentId": "fld_admin_products",
+      "name": "Update Product",
+      "method": "PUT",
+      "url": "{{ _.base_url }}{{ _.api_prefix }}/admin/products/{{ _.product_id }}",
+      "headers": [
+        { "name": "Content-Type",  "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{ _.admin_token }}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Red Rose Bouquet – Premium\",\n  \"description\": \"Updated description.\",\n  \"price\": 275000,\n  \"weight\": 0.6,\n  \"stock\": 80,\n  \"is_active\": true,\n  \"category_id\": \"{{ _.category_id }}\"\n}"
+      },
+      "parameters": [],
+      "description": "Update an existing product. All fields are optional."
+    },
+    {
+      "_id": "req_admin_delete_product",
+      "_type": "request",
+      "parentId": "fld_admin_products",
+      "name": "Delete Product",
+      "method": "DELETE",
+      "url": "{{ _.base_url }}{{ _.api_prefix }}/admin/products/{{ _.product_id }}",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.admin_token }}" }
+      ],
+      "body": {},
+      "parameters": [],
+      "description": "Soft-delete a product by ID."
+    },
+    {
+      "_id": "req_admin_add_product_image",
+      "_type": "request",
+      "parentId": "fld_admin_products",
+      "name": "Add Product Image",
+      "method": "POST",
+      "url": "{{ _.base_url }}{{ _.api_prefix }}/admin/products/{{ _.product_id }}/images",
+      "headers": [
+        { "name": "Content-Type",  "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{ _.admin_token }}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"url\": \"https://example.com/images/rose-bouquet.jpg\",\n  \"alt_text\": \"Red Rose Bouquet\",\n  \"is_primary\": true,\n  \"sort_order\": 0\n}"
+      },
+      "parameters": [],
+      "description": "Add an image URL to a product. url must be a valid URL. is_primary marks the main display image."
+    },
+    {
+      "_id": "req_admin_delete_product_image",
+      "_type": "request",
+      "parentId": "fld_admin_products",
+      "name": "Delete Product Image",
+      "method": "DELETE",
+      "url": "{{ _.base_url }}{{ _.api_prefix }}/admin/products/{{ _.product_id }}/images/{{ _.image_id }}",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.admin_token }}" }
+      ],
+      "body": {},
+      "parameters": [],
+      "description": "Delete a specific product image."
+    },
+
+    {
+      "_id": "fld_admin_categories",
+      "_type": "request_group",
+      "parentId": "wrk_commerce_api",
+      "name": "🗂️ Admin – Categories"
+    },
+    {
+      "_id": "req_admin_list_categories",
+      "_type": "request",
+      "parentId": "fld_admin_categories",
+      "name": "List Categories (Admin)",
+      "method": "GET",
+      "url": "{{ _.base_url }}{{ _.api_prefix }}/admin/categories",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.admin_token }}" }
+      ],
+      "body": {},
+      "parameters": [],
+      "description": "List all categories including inactive ones."
+    },
+    {
+      "_id": "req_admin_create_category",
+      "_type": "request",
+      "parentId": "fld_admin_categories",
+      "name": "Create Category",
+      "method": "POST",
+      "url": "{{ _.base_url }}{{ _.api_prefix }}/admin/categories",
+      "headers": [
+        { "name": "Content-Type",  "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{ _.admin_token }}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Fresh Flowers\",\n  \"slug\": \"fresh-flowers\",\n  \"description\": \"Beautiful fresh flower arrangements.\",\n  \"parent_id\": null,\n  \"is_active\": true\n}"
+      },
+      "parameters": [],
+      "description": "Create a new product category. slug is optional. parent_id is optional for sub-categories."
+    },
+    {
+      "_id": "req_admin_update_category",
+      "_type": "request",
+      "parentId": "fld_admin_categories",
+      "name": "Update Category",
+      "method": "PUT",
+      "url": "{{ _.base_url }}{{ _.api_prefix }}/admin/categories/{{ _.category_id }}",
+      "headers": [
+        { "name": "Content-Type",  "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{ _.admin_token }}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Premium Fresh Flowers\",\n  \"description\": \"Updated description.\",\n  \"is_active\": true\n}"
+      },
+      "parameters": [],
+      "description": "Update an existing category. All fields are optional."
+    },
+    {
+      "_id": "req_admin_delete_category",
+      "_type": "request",
+      "parentId": "fld_admin_categories",
+      "name": "Delete Category",
+      "method": "DELETE",
+      "url": "{{ _.base_url }}{{ _.api_prefix }}/admin/categories/{{ _.category_id }}",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.admin_token }}" }
+      ],
+      "body": {},
+      "parameters": [],
+      "description": "Soft-delete a category by ID."
+    },
+
+    {
+      "_id": "fld_admin_banners",
+      "_type": "request_group",
+      "parentId": "wrk_commerce_api",
+      "name": "🖼️ Admin – Banners"
+    },
+    {
+      "_id": "req_admin_list_banners",
+      "_type": "request",
+      "parentId": "fld_admin_banners",
+      "name": "List Banners (Admin)",
+      "method": "GET",
+      "url": "{{ _.base_url }}{{ _.api_prefix }}/admin/banners",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.admin_token }}" }
+      ],
+      "body": {},
+      "parameters": [],
+      "description": "List all banners including inactive ones."
+    },
+    {
+      "_id": "req_admin_get_banner",
+      "_type": "request",
+      "parentId": "fld_admin_banners",
+      "name": "Get Banner by ID",
+      "method": "GET",
+      "url": "{{ _.base_url }}{{ _.api_prefix }}/admin/banners/{{ _.banner_id }}",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.admin_token }}" }
+      ],
+      "body": {},
+      "parameters": [],
+      "description": "Get a single banner by UUID."
+    },
+    {
+      "_id": "req_admin_create_banner",
+      "_type": "request",
+      "parentId": "fld_admin_banners",
+      "name": "Create Banner",
+      "method": "POST",
+      "url": "{{ _.base_url }}{{ _.api_prefix }}/admin/banners",
+      "headers": [
+        { "name": "Content-Type",  "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{ _.admin_token }}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"title\": \"Summer Sale\",\n  \"subtitle\": \"Up to 30% off all arrangements\",\n  \"image_url\": \"https://example.com/banners/summer-sale.jpg\",\n  \"link_url\": \"https://example.com/products?category=summer\",\n  \"is_active\": true,\n  \"sort_order\": 1,\n  \"start_date\": \"2026-03-01T00:00:00Z\",\n  \"end_date\": \"2026-03-31T23:59:59Z\"\n}"
+      },
+      "parameters": [],
+      "description": "Create a new homepage banner. start_date and end_date are optional ISO8601 timestamps."
+    },
+    {
+      "_id": "req_admin_update_banner",
+      "_type": "request",
+      "parentId": "fld_admin_banners",
+      "name": "Update Banner",
+      "method": "PUT",
+      "url": "{{ _.base_url }}{{ _.api_prefix }}/admin/banners/{{ _.banner_id }}",
+      "headers": [
+        { "name": "Content-Type",  "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{ _.admin_token }}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"title\": \"Summer Sale – Extended\",\n  \"is_active\": false,\n  \"sort_order\": 2\n}"
+      },
+      "parameters": [],
+      "description": "Update a banner. All fields are optional."
+    },
+    {
+      "_id": "req_admin_delete_banner",
+      "_type": "request",
+      "parentId": "fld_admin_banners",
+      "name": "Delete Banner",
+      "method": "DELETE",
+      "url": "{{ _.base_url }}{{ _.api_prefix }}/admin/banners/{{ _.banner_id }}",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.admin_token }}" }
+      ],
+      "body": {},
+      "parameters": [],
+      "description": "Soft-delete a banner."
+    },
+
+    {
+      "_id": "fld_admin_promos",
+      "_type": "request_group",
+      "parentId": "wrk_commerce_api",
+      "name": "🎟️ Admin – Promos"
+    },
+    {
+      "_id": "req_admin_list_promos",
+      "_type": "request",
+      "parentId": "fld_admin_promos",
+      "name": "List Promo Codes",
+      "method": "GET",
+      "url": "{{ _.base_url }}{{ _.api_prefix }}/admin/promos",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.admin_token }}" }
+      ],
+      "body": {},
+      "parameters": [],
+      "description": "List all promo codes."
+    },
+    {
+      "_id": "req_admin_get_promo",
+      "_type": "request",
+      "parentId": "fld_admin_promos",
+      "name": "Get Promo by ID",
+      "method": "GET",
+      "url": "{{ _.base_url }}{{ _.api_prefix }}/admin/promos/{{ _.promo_id }}",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.admin_token }}" }
+      ],
+      "body": {},
+      "parameters": [],
+      "description": "Get details of a specific promo code."
+    },
+    {
+      "_id": "req_admin_create_promo",
+      "_type": "request",
+      "parentId": "fld_admin_promos",
+      "name": "Create Promo Code",
+      "method": "POST",
+      "url": "{{ _.base_url }}{{ _.api_prefix }}/admin/promos",
+      "headers": [
+        { "name": "Content-Type",  "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{ _.admin_token }}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"code\": \"SAVE10\",\n  \"name\": \"10% Off All Orders\",\n  \"description\": \"Get 10% off your entire order.\",\n  \"type\": \"percentage\",\n  \"value\": 10,\n  \"min_purchase\": 100000,\n  \"max_discount\": 50000,\n  \"usage_limit\": 100,\n  \"start_date\": \"2026-03-01T00:00:00Z\",\n  \"end_date\": \"2026-03-31T23:59:59Z\",\n  \"is_active\": true\n}"
+      },
+      "parameters": [],
+      "description": "Create a promo code. type: 'percentage' | 'fixed'. value is the discount amount/percentage. usage_limit 0 = unlimited."
+    },
+    {
+      "_id": "req_admin_update_promo",
+      "_type": "request",
+      "parentId": "fld_admin_promos",
+      "name": "Update Promo Code",
+      "method": "PUT",
+      "url": "{{ _.base_url }}{{ _.api_prefix }}/admin/promos/{{ _.promo_id }}",
+      "headers": [
+        { "name": "Content-Type",  "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{ _.admin_token }}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Updated Promo Name\",\n  \"is_active\": false,\n  \"usage_limit\": 200\n}"
+      },
+      "parameters": [],
+      "description": "Update an existing promo code. All fields are optional."
+    },
+    {
+      "_id": "req_admin_delete_promo",
+      "_type": "request",
+      "parentId": "fld_admin_promos",
+      "name": "Delete Promo Code",
+      "method": "DELETE",
+      "url": "{{ _.base_url }}{{ _.api_prefix }}/admin/promos/{{ _.promo_id }}",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.admin_token }}" }
+      ],
+      "body": {},
+      "parameters": [],
+      "description": "Soft-delete a promo code."
+    },
+
+    {
+      "_id": "fld_admin_orders",
+      "_type": "request_group",
+      "parentId": "wrk_commerce_api",
+      "name": "📋 Admin – Orders"
+    },
+    {
+      "_id": "req_admin_list_orders",
+      "_type": "request",
+      "parentId": "fld_admin_orders",
+      "name": "List Orders (Admin)",
+      "method": "GET",
+      "url": "{{ _.base_url }}{{ _.api_prefix }}/admin/orders",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.admin_token }}" }
+      ],
+      "body": {},
+      "parameters": [
+        { "name": "page",       "value": "1",    "disabled": false },
+        { "name": "limit",      "value": "20",   "disabled": false },
+        { "name": "status",     "value": "pending", "disabled": true },
+        { "name": "start_date", "value": "2026-01-01", "disabled": true },
+        { "name": "end_date",   "value": "2026-03-06", "disabled": true }
+      ],
+      "description": "Admin order list with pagination. Filter by status and/or date range (YYYY-MM-DD). Status values: pending | waiting_payment | paid | processing | shipped | completed | cancelled"
+    },
+    {
+      "_id": "req_admin_get_order",
+      "_type": "request",
+      "parentId": "fld_admin_orders",
+      "name": "Get Order Detail (Admin)",
+      "method": "GET",
+      "url": "{{ _.base_url }}{{ _.api_prefix }}/admin/orders/{{ _.order_id }}",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.admin_token }}" }
+      ],
+      "body": {},
+      "parameters": [],
+      "description": "Get full order detail including customer, items, address, payment."
+    },
+    {
+      "_id": "req_admin_update_order_status",
+      "_type": "request",
+      "parentId": "fld_admin_orders",
+      "name": "Update Order Status",
+      "method": "PATCH",
+      "url": "{{ _.base_url }}{{ _.api_prefix }}/admin/orders/{{ _.order_id }}/status",
+      "headers": [
+        { "name": "Content-Type",  "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{ _.admin_token }}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"status\": \"processing\",\n  \"notes\": \"Order has been confirmed and is being processed.\"\n}"
+      },
+      "parameters": [],
+      "description": "Update order status. Valid transitions: pending→waiting_payment|cancelled, waiting_payment→paid|cancelled, paid→processing|cancelled, processing→shipped, shipped→completed. notes is optional."
+    },
+
+    {
+      "_id": "fld_admin_customers",
+      "_type": "request_group",
+      "parentId": "wrk_commerce_api",
+      "name": "👥 Admin – Customers"
+    },
+    {
+      "_id": "req_admin_list_customers",
+      "_type": "request",
+      "parentId": "fld_admin_customers",
+      "name": "List Customers (Admin)",
+      "method": "GET",
+      "url": "{{ _.base_url }}{{ _.api_prefix }}/admin/customers",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.admin_token }}" }
+      ],
+      "body": {},
+      "parameters": [
+        { "name": "page",  "value": "1",  "disabled": false },
+        { "name": "limit", "value": "20", "disabled": false }
+      ],
+      "description": "List all registered customers with pagination."
+    },
+
+    {
+      "_id": "fld_admin_reports",
+      "_type": "request_group",
+      "parentId": "wrk_commerce_api",
+      "name": "📊 Admin – Reports"
+    },
+    {
+      "_id": "req_admin_sales_report",
+      "_type": "request",
+      "parentId": "fld_admin_reports",
+      "name": "Sales Report",
+      "method": "GET",
+      "url": "{{ _.base_url }}{{ _.api_prefix }}/admin/reports/sales",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.admin_token }}" }
+      ],
+      "body": {},
+      "parameters": [
+        { "name": "start_date", "value": "2026-02-01", "disabled": false },
+        { "name": "end_date",   "value": "2026-03-06", "disabled": false }
+      ],
+      "description": "Get sales report for a date range (YYYY-MM-DD). Defaults to last 30 days if not provided. Returns total_orders, total_revenue, average_order, pending/completed/cancelled counts, and top_products."
+    }
+  ]
+}

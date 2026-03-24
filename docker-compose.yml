@@ -1,0 +1,95 @@
+version: "3.9"
+
+services:
+  # ─── MySQL ─────────────────────────────────────────────────────────────────
+  mysql:
+    image: mysql:8.4
+    container_name: ecommerce_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${DB_NAME:-ecommerce}
+      MYSQL_USER: ${DB_USER:-ecommerce}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-ecommerce123}
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - ecommerce_net
+    command: >
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --default-authentication-plugin=caching_sha2_password
+      --innodb-buffer-pool-size=256M
+      --max-connections=500
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "--password=${DB_ROOT_PASSWORD:-rootpassword}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  # ─── Application ───────────────────────────────────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ecommerce_api
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      APP_NAME: ecommerce-api
+      APP_ENV: ${APP_ENV:-production}
+      APP_PORT: ${APP_PORT:-8080}
+      APP_BASE_URL: ${APP_BASE_URL:-http://localhost:8080}
+      APP_DEBUG: ${APP_DEBUG:-false}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: ${DB_USER:-ecommerce}
+      DB_PASSWORD: ${DB_PASSWORD:-ecommerce123}
+      DB_NAME: ${DB_NAME:-ecommerce}
+      DB_CHARSET: utf8mb4
+      DB_MAX_OPEN_CONNS: ${DB_MAX_OPEN_CONNS:-25}
+      DB_MAX_IDLE_CONNS: ${DB_MAX_IDLE_CONNS:-10}
+      DB_MAX_LIFETIME: ${DB_MAX_LIFETIME:-5m}
+
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      JWT_ACCESS_TTL: ${JWT_ACCESS_TTL:-15m}
+      JWT_REFRESH_TTL: ${JWT_REFRESH_TTL:-168h}
+
+      DOKU_CLIENT_ID: ${DOKU_CLIENT_ID}
+      DOKU_SECRET_KEY: ${DOKU_SECRET_KEY}
+      DOKU_BASE_URL: ${DOKU_BASE_URL:-https://api-sandbox.doku.com}
+      PAYMENT_CALLBACK_URL: ${PAYMENT_CALLBACK_URL}
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    networks:
+      - ecommerce_net
+
+  # ─── Adminer (optional DB GUI) ─────────────────────────────────────────────
+  adminer:
+    image: adminer:latest
+    container_name: ecommerce_adminer
+    restart: unless-stopped
+    depends_on:
+      - mysql
+    ports:
+      - "8081:8080"
+    networks:
+      - ecommerce_net
+    profiles:
+      - tools
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  ecommerce_net:
+    driver: bridge
